@@ -6,7 +6,7 @@ from collections import deque
 from aiohttp import web
 
 # Konfiguration
-VLC_STREAM_URL = "http://localhost:8080/stream" # Byt ut mot din VLC-ström (eller 0 för webbkamera vid test)
+VLC_STREAM_URL = "http://localhost:8088/stream" # Byt ut mot din VLC-ström (eller 0 för webbkamera vid test)
 BUFFER_SECONDS = 5
 FPS = 30 # Antagen bilduppdateringsfrekvens
 MAX_FRAMES = BUFFER_SECONDS * FPS
@@ -144,5 +144,5 @@ async def init_app():
     return app
 
 if __name__ == "__main__":
-    print("Startar aiohttp-server på http://localhost:8080...")
-    web.run_app(init_app(), port=8080)
+    print("Startar aiohttp-server på http://localhost:8089...")
+    web.run_app(init_app(), port=8089)

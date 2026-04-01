@@ -10,6 +10,7 @@ export default function App() {
   const [appPhase, setAppPhase] = useState<AppPhase>('idle');
   const [briefingContext, setBriefingContext] = useState<string>('');
   const [currentFrameForGemini, setCurrentFrameForGemini] = useState<string | null>(null);
+  const [bridgeConnected, setBridgeConnected] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -27,10 +28,20 @@ export default function App() {
 
   // 1. Anslut till Python-bryggan via WebSocket
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080/ws');
-    ws.onopen = () => console.log('✅ Ansluten till Python Bridge WS');
+    const ws = new WebSocket('ws://localhost:8089/ws');
+    ws.onopen = () => {
+      console.log('✅ Ansluten till Python Bridge WS');
+      setBridgeConnected(true);
+    };
     ws.onmessage = (msg) => console.log('📩 Svar från Bridge:', msg.data);
-    ws.onerror = (err) => console.error('❌ Bridge WS Error:', err);
+    ws.onclose = () => {
+      console.log('❌ Bridge WS Stängd');
+      setBridgeConnected(false);
+    };
+    ws.onerror = (err) => {
+      console.error('❌ Bridge WS Error:', err);
+      setBridgeConnected(false);
+    };
     bridgeWsRef.current = ws;
 
     return () => {
@@ -241,7 +252,8 @@ export default function App() {
     setBriefingContext('');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+      const ai = new GoogleGenAI({ apiKey: apiKey as string });
       const sessionPromise = ai.live.connect({
         model: 'gemini-3.1-flash-live-preview',
         callbacks: {
@@ -286,7 +298,8 @@ export default function App() {
     setAppPhase('director');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+      const ai = new GoogleGenAI({ apiKey: apiKey as string });
       const sessionPromise = ai.live.connect({
         model: 'gemini-3.1-flash-live-preview',
         callbacks: {
@@ -396,7 +409,7 @@ export default function App() {
             <img 
               ref={imgRef}
               crossOrigin="anonymous"
-              src="http://localhost:8080/video_feed" 
+              src="http://localhost:8089/video_feed" 
               alt="DVD Stream"
               className="w-full h-full object-contain"
               onError={() => console.error("Kunde inte ladda DVD-strömmen.")}
@@ -404,8 +417,14 @@ export default function App() {
           )}
           
           <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-mono text-zinc-300 border border-white/10 flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full animate-pulse ${appPhase === 'director' ? 'bg-red-500' : appPhase === 'briefing' ? 'bg-blue-500' : 'bg-zinc-500'}`} />
-            {appPhase === 'director' ? 'REC: Director Mode' : appPhase === 'briefing' ? 'Briefing Mode' : 'Kamera Aktiv'}
+            <div className={`w-2 h-2 rounded-full animate-pulse ${
+              appPhase === 'director' ? 'bg-red-500' : 
+              appPhase === 'briefing' ? 'bg-blue-500' : 
+              'bg-emerald-500'
+            }`} />
+            {appPhase === 'director' ? 'REC: Director Mode' : 
+             appPhase === 'briefing' ? 'Briefing Mode' : 
+             sourceMode === 'mobile' ? 'Kamera Aktiv' : 'DVD Ström Aktiv'}
           </div>
         </div>
 
@@ -416,6 +435,10 @@ export default function App() {
               <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
                 <Cpu className="w-4 h-4" /> AI State Machine
               </h2>
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${bridgeConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <span className="text-[10px] text-zinc-500 font-medium">Bridge</span>
+              </div>
             </div>
             
             <div className="flex flex-col gap-3">
