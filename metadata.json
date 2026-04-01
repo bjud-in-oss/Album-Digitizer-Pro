@@ -1,0 +1,8 @@
+{
+  "name": "Album Digitizer Pro",
+  "description": "Ett verktyg för att digitalisera fotoalbum via mobilkamera med fjärrstyrning från dator, automatisk beskärning och AI-driven berättelseinspelning.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
