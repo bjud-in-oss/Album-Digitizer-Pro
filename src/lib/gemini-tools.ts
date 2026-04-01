@@ -18,7 +18,18 @@ export const saveSnapshotTool: FunctionDeclaration = {
         type: Type.NUMBER,
         description: "Uppskattad fördröjning i sekunder från det att händelsen skedde tills du anropar detta verktyg. Eftersom du analyserar video med viss fördröjning, ange hur många sekunder bakåt i tiden bilden ska hämtas (vanligtvis mellan 1 och 3).",
       },
+      running_summary: {
+        type: Type.STRING,
+        description: "En övergripande sammanfattning av handlingen i filmen/media fram till denna punkt, baserat på ljud och bild. Uppdatera denna för att bevara den röda tråden.",
+      },
+      characters_detected: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.STRING,
+        },
+        description: "En lista med namn på personer som nämnts i ljudspåret eller kan identifieras i bilden.",
+      },
     },
-    required: ["description", "timestamp_offset"],
+    required: ["description", "timestamp_offset", "running_summary", "characters_detected"],
   },
 };
